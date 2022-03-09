@@ -1,12 +1,12 @@
 package com.msr;
 
+import com.msr.model.Site;
+import com.msr.service.SiteService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Respond to site requests
@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/sites")
 public class SitesController {
+
+    @Autowired
+    private SiteService siteService;
 
     /* Sample Output messages. */
     private final static String SAMPLE_RESPONSE_BASE = "This is a sample response to test if SitesController is responding appropriately. ";
@@ -43,5 +46,22 @@ public class SitesController {
             response = SAMPLE_PARAM_PROVIDED + message;
         }
         return response;
+    }
+
+    @ApiOperation("Returns a site by its identifier.")
+    @GetMapping("/site/{id}")
+    public Site getSiteById(@PathVariable Integer id) {
+
+        return Site.builder()
+                .id(1)
+                .name("Measurabl HQ")
+                .address("707 Broadway Suite 1000")
+                .city("San Diego")
+                .state("CA")
+                .zipcode("92101")
+                .totalSize(Long.parseLong("13000"))
+                .build()
+            ;
+        //return siteService.getSiteById(id);
     }
 }
