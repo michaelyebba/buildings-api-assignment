@@ -1,16 +1,18 @@
 package com.msr.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import javax.persistence.*;
 
 @Data
 @Entity
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class SiteUse {
 
     @Id
+    @EqualsAndHashCode.Include
     private int id;
 
     private String description;

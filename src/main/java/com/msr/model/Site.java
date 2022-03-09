@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.util.List;
 
 @Data
@@ -15,9 +12,11 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Site {
 
     @Id
+    @EqualsAndHashCode.Include
     private int id;
 
     private String name;
@@ -31,13 +30,13 @@ public class Site {
     private String zipcode;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "site")
+    @OneToMany(mappedBy = "site", fetch = FetchType.EAGER)
     @JsonIgnore
     private List<SiteUse> siteUses;
 
     @Transient
     @JsonProperty("total_size")
-    private Long totalSize;
+    private long totalSize;
 
     @Transient
     @JsonProperty("primary_type")

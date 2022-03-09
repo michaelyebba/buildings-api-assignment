@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * Respond to site requests
  */
@@ -48,20 +50,29 @@ public class SitesController {
         return response;
     }
 
+    /**
+     * Returns a site with total_size and primary_type elements populated
+     *
+     * @param id  The site id
+     * @return A Json response of the requested site object
+     */
     @ApiOperation("Returns a site by its identifier.")
     @GetMapping("/site/{id}")
-    public Site getSiteById(@PathVariable Integer id) {
+    public Site getSiteById(
+                            @ApiParam("The id of the site your wish to search")
+                            @PathVariable Integer id) {
 
-        return Site.builder()
-                .id(1)
-                .name("Measurabl HQ")
-                .address("707 Broadway Suite 1000")
-                .city("San Diego")
-                .state("CA")
-                .zipcode("92101")
-                .totalSize(Long.parseLong("13000"))
-                .build()
-            ;
-        //return siteService.getSiteById(id);
+        return siteService.findSiteById(id);
+    }
+
+    /**
+     * Returns a list of all sites
+     *
+     * @return
+     */
+    @ApiOperation("Returns a site by its identifier.")
+    @GetMapping("/")
+    public List<Site> getAllSites() {
+        return siteService.findAll();
     }
 }
