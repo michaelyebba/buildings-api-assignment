@@ -13,7 +13,8 @@ public class SiteUse {
 
     @Id
     @EqualsAndHashCode.Include
-    private int id;
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    private Integer id;
 
     private String description;
 

@@ -1,7 +1,9 @@
 package com.msr.model;
 
-import com.fasterxml.jackson.annotation.*;
-import com.msr.model.projection.TotalSiteUseByType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.*;
 
 import javax.persistence.*;
@@ -19,7 +21,8 @@ public class Site {
 
     @Id
     @EqualsAndHashCode.Include
-    private int id;
+    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    private Integer id;
 
     private String name;
 

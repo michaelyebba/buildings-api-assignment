@@ -70,6 +70,36 @@ public class SiteServiceTest {
 		});
 	}
 
+	@Test
+	public void testSaveSite_newSite() {
+		Site newSite = Site.builder()
+				.name("New Site")
+				.address("123 Diamond St")
+				.city("San Diego")
+				.state("CA")
+				.zipcode("92109")
+				.build();
+
+		newSite = siteService.saveSite(newSite);
+		assertThat(newSite).isNotNull();
+		assertThat(newSite.getId()).isNotNull();
+		assertThat(newSite.getName()).isEqualTo("New Site");
+		assertThat(newSite.getAddress()).isEqualTo("123 Diamond St");
+		assertThat(newSite.getCity()).isEqualTo("San Diego");
+		assertThat(newSite.getState()).isEqualTo("CA");
+		assertThat(newSite.getZipcode()).isEqualTo("92109");
+	}
+
+	@Test
+	public void testSaveSite_existingSite() {
+		Site mhq = siteService.findSiteById(MHQ_SITE_ID);
+		String newName = String.format("%s - Modified", mhq.getName());
+		mhq.setName(newName);
+		mhq = siteService.saveSite(mhq);
+		assertThat(mhq).isNotNull();
+		assertThat(mhq.getName()).isEqualTo(newName);
+	}
+
 	/*
 		For a given site, calculcate primary type where the primary type is the
 		largest use_type (by size_sqft) in aggregate per-site.

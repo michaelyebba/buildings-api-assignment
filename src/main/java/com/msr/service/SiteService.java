@@ -2,23 +2,26 @@ package com.msr.service;
 
 import com.msr.data.SiteRepository;
 import com.msr.model.Site;
-import com.msr.model.UseType;
 import com.msr.model.projection.TotalSiteUseByType;
 import lombok.NonNull;
+import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
+@CommonsLog
 public class SiteService {
 
 	@Autowired
 	private SiteRepository siteRepository;
+
+	@Autowired
+	private SiteDecoratorService siteDecoratorService;
 
 	/**
 	 * Returns a site by Id then returns sums up the total size from all the site uses
@@ -28,13 +31,13 @@ public class SiteService {
 	 * @param id
 	 * @return
 	 */
-	public Site findSiteById(Integer id) {
+	public Site findSiteById(@NonNull Integer id) {
 		Optional<Site> siteOpt = siteRepository.findById(id);
 
 		if (siteOpt.isPresent()) {
 			Site site = siteOpt.get();
 			List<TotalSiteUseByType> totalSiteUseByTypesBySite = siteRepository.findTotalSiteUseByTypeBySiteId(site.getId());
-			this.setSupplementalFields(site, totalSiteUseByTypesBySite);
+			siteDecoratorService.setSupplementalFields(site, totalSiteUseByTypesBySite);
 			return site;
 		}
 
@@ -48,7 +51,7 @@ public class SiteService {
 	 */
 	public List<Site> findAll() {
 		List<Site> allSites = siteRepository.findAll();
-		this.setSupplementalFields(allSites);
+		siteDecoratorService.setSupplementalFields(allSites);
 		return allSites;
 	}
 
@@ -58,49 +61,25 @@ public class SiteService {
 	 */
 	public List<Site> findAllByState(@NonNull String state) {
 		List<Site> sitesByState = siteRepository.findAllByStateEquals(state);
-		this.setSupplementalFields(sitesByState);
+		siteDecoratorService.setSupplementalFields(sitesByState);
 		return sitesByState;
 	}
 
-	/*
-		For a given site, calculate total size by summing the size_sqft associated with the site’s use(s).
+	/**
+	 * Saves a site object
+	 *
+	 * @param site
 	 */
-	private long calculateTotalSize(Site site) {
-		return site.getSiteUses().stream().map(su -> su.getSizeSqft()).reduce(0L, Long::sum);
-	}
-
-	/*
-		For a given site, calculcate primary type where the primary type is the
-		largest use_type (by size_sqft) in aggregate per-site.
-
-		This implementation uses SQL to calculate return a list of totalSiteUseByType projections
-		then uses streams to select the max.
-	 */
-	private UseType calculatePrimaryType(List<TotalSiteUseByType> totalSiteUseByTypesBySite) {
-		TotalSiteUseByType primaryType = totalSiteUseByTypesBySite.stream().max(Comparator.comparing(TotalSiteUseByType::getTotalSize)).orElseGet(null);
-		return new UseType(primaryType);
-	}
-
-	/*
-		Sets the totalSize and primary use type for a given site
- 	*/
-	private void setSupplementalFields(Site site, List<TotalSiteUseByType> totalSiteUseByTypesBySiteId) {
-		site.setTotalSize(calculateTotalSize(site));
-		site.setPrimaryUseType(calculatePrimaryType(totalSiteUseByTypesBySiteId));
-	}
-
-	/*
-		Sets supplemental fields for a list of sites
- 	*/
-	private void setSupplementalFields(List<Site> allSites) {
-		final List<TotalSiteUseByType> totalSiteUseByTypes = siteRepository.findAllTotalSiteUseByType();  // get list of total site uses by siteid
-
-		allSites.stream().forEach(site -> {
-
-			// Get the total uses by site and use to calculate primary use type
-			List<TotalSiteUseByType> totalSiteUseByTypesBySiteId = totalSiteUseByTypes.stream().filter(t->t.getSiteId().equals(site.getId())).collect(Collectors.toList());
-			setSupplementalFields(site, totalSiteUseByTypesBySiteId);
-		});
+	@Transactional
+	public Site saveSite(@NonNull Site site) {
+		try {
+			Site newSite = siteRepository.saveAndFlush(site);
+			log.info(String.format("Successfully saved new site: Id=%d; Name=%s", newSite.getId(), newSite.getName()));
+			return newSite;
+		} catch (Exception e) {
+			log.error(String.format("Error saving site: %s", e.getMessage()));
+		}
+		return null;
 	}
 
 	/**

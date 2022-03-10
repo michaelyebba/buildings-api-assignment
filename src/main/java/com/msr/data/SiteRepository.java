@@ -2,15 +2,15 @@ package com.msr.data;
 
 import com.msr.model.Site;
 import com.msr.model.projection.TotalSiteUseByType;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
 
 import java.util.List;
 
 /**
  * A sample JPA repository for querying and storing sites
  */
-public interface SiteRepository extends PagingAndSortingRepository<Site, Integer> {
+public interface SiteRepository extends JpaRepository<Site, Integer> {
 
 	String FIND_TOTAL_SITE_USE_BY_TYPE_SQL = "" +
 			"SELECT ut.id AS useTypeId, ut.name AS useTypeName, s.id AS siteId, sum(su.sizeSqft) AS totalSize " +

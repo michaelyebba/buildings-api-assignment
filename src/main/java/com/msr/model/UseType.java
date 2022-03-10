@@ -7,9 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.util.List;
 
 @Data
@@ -20,7 +18,8 @@ public class UseType {
 
     @Id
     @EqualsAndHashCode.Include
-    private int id;
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    private Integer id;
 
     private String name;
 
