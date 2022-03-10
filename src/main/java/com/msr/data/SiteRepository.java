@@ -35,4 +35,6 @@ public interface SiteRepository extends PagingAndSortingRepository<Site, Integer
 
 	@Query(FIND_TOTAL_SITE_USE_BY_TYPE_SQL)
 	List<TotalSiteUseByType> findAllTotalSiteUseByType();
+
+	List<Site> findAllByStateEquals(String state);
 }

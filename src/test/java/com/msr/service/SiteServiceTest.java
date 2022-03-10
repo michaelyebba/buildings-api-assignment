@@ -11,7 +11,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,17 +43,25 @@ public class SiteServiceTest {
 	}
 
 	@Test
-	public void testFindAll() {
+	public void testFindAll_Success() {
 		List<Site> allSites = siteService.findAll();
-		assertThat(allSites).hasSize(6);
 
-		// select out mhq
-		Optional<Site> mhqOpt = allSites.stream().filter(s->s.getId() == MHQ_SITE_ID).findFirst();
-		assertThat(mhqOpt.isPresent()).isTrue();
+		Integer verifiedTotalSiteCount = getTotalSiteCount();
+		assertThat(allSites).hasSize(verifiedTotalSiteCount);
 
-		Site mhq = mhqOpt.get();
-		assertThat(mhq.getId()).isEqualTo(MHQ_SITE_ID);
-		assertThat(mhq.getTotalSize()).isEqualTo(MHQ_TOTAL_SIZE);
+		// Now check all sites dynamically using verifyPrimaryType()
+		allSites.stream().forEach(site -> {
+			verifyPrimaryType(site);
+			verifyTotalSize(site);
+		});
+	}
+
+	@Test
+	public void testFindAllByState_Success() {
+		List<Site> allSites = siteService.findAllByState("CA");
+
+		Integer verifiedTotalSiteCount = getTotalSiteCountByState("CA");
+		assertThat(allSites).hasSize(verifiedTotalSiteCount);
 
 		// Now check all sites dynamically using verifyPrimaryType()
 		allSites.stream().forEach(site -> {
@@ -99,5 +106,21 @@ public class SiteServiceTest {
 				"WHERE s.Id = ?";
 
 		return jdbcTemplate.queryForObject(sql, Long.class, site.getId());
+	}
+
+	/*
+		Returns the total number of all sites
+	 */
+	Integer getTotalSiteCount() {
+		String sql = "SELECT COUNT(0) FROM Site";
+		return jdbcTemplate.queryForObject(sql, Integer.class);
+	}
+
+	/*
+		Returns the total number of all sites by state
+	 */
+	Integer getTotalSiteCountByState(String state) {
+		String sql = "SELECT COUNT(0) FROM Site WHERE State = ?";
+		return jdbcTemplate.queryForObject(sql, Integer.class, state);
 	}
 }

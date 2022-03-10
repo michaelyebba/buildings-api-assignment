@@ -1,7 +1,6 @@
 package com.msr.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.*;
 import com.msr.model.projection.TotalSiteUseByType;
 import lombok.*;
 
@@ -14,6 +13,8 @@ import java.util.List;
 @Builder
 @Entity
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@JsonTypeName(value = "site")
+@JsonTypeInfo(include = JsonTypeInfo.As.WRAPPER_OBJECT, use = JsonTypeInfo.Id.NAME)
 public class Site {
 
     @Id

@@ -1,58 +1,67 @@
 package com.msr;
 
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Intended as a starting point for unit testing SitesController
+ * Unit test that uses MockMvc to test rest services
  */
+@SpringBootTest
+@AutoConfigureMockMvc
 class SitesControllerTest {
 
-    private final SitesController sitesController = new SitesController();
-
-    @Test
-    void testSampleResponse_NullMessageParameter() {
-        String response = sitesController.getSampleResponse(null, false);
-        assertEquals(SitesController.NO_SAMPLE_PARAM_PROVIDED, response);
-    }
-
-    @Test
-    void testSampleResponse_EmptyMessageParameter() {
-        String response = sitesController.getSampleResponse("", false);
-        assertEquals(SitesController.NO_SAMPLE_PARAM_PROVIDED, response);
-    }
-
-    @Test
-    void testSampleResponse_MessageParameterProvided() {
-        String expectedString = "This is the expected output parameter.";
-        String response = sitesController.getSampleResponse(expectedString, false);
-        assertEquals(SitesController.SAMPLE_PARAM_PROVIDED + expectedString, response);
-    }
-
-    @Test
-    void testSampleResponse_ThrowsWhenThrowErrorIsTrue() {
-        assertThrows(RuntimeException.class, () -> sitesController.getSampleResponse(null, true));
-    }
+    @Autowired
+    protected MockMvc mockMvc;
 
     /**
-     * Intended to test the controller's get all sites functionality.
+     * Tests the get all sites controller
      */
     @Test
+    @SneakyThrows
     void testGetAllSites() {
-        // TODO: Flesh out test based on implementation
-        // List<Site> sites = buildingsController.getAllSites();
-        // assertEquals(expectedListSize, sites.getLength());
+        mockMvc.perform(get("/sites/"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.*", hasSize(6)))
+                .andExpect(jsonPath("$..site").exists())
+                .andExpect(jsonPath("$..site.[?(@.id==1)]").exists())
+                .andExpect(jsonPath("$..site.[?(@.id==1 && @.total_size==13000)]").exists())
+        ;
     }
 
     /**
-     * Intended to test the controller's get site by ID functionality.
+     * Tests the controller's get site by ID functionality.
      */
     @Test
+    @SneakyThrows
     void testGetSiteById() {
-        // TODO: Flesh out test based on implementation
-        // Site site = buildingsController.getSite(siteId);
-        // assertEquals(expectedSite, site);
+        mockMvc.perform(get("/sites/site/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.site").exists())
+                .andExpect(jsonPath("$.site.[?(@.id==1)]").exists())
+                .andExpect(jsonPath("$.site.[?(@.id==1 && @.total_size==13000)]").exists())
+        ;
+    }
+
+    /**
+     * Tests the controller's get list of sites by state search
+     */
+    @Test
+    @SneakyThrows
+    void testGetSitesByState() {
+        mockMvc.perform(get("/sites/?state=CA"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.*", hasSize(5)))
+                .andExpect(jsonPath("$..site").exists())
+                .andExpect(jsonPath("$..site.[?(@.state=='CA')]", hasSize(5)))
+        ;
     }
 }

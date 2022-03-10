@@ -4,6 +4,7 @@ import com.msr.data.SiteRepository;
 import com.msr.model.Site;
 import com.msr.model.UseType;
 import com.msr.model.projection.TotalSiteUseByType;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -47,31 +48,25 @@ public class SiteService {
 	 */
 	public List<Site> findAll() {
 		List<Site> allSites = siteRepository.findAll();
-		final List<TotalSiteUseByType> totalSiteUseByTypes = siteRepository.findAllTotalSiteUseByType();  // get list of total site uses by siteid
-
-		allSites.stream().forEach(site -> {
-
-			// Get the total uses by site
-			List<TotalSiteUseByType> totalSiteUseByTypesBySiteId = totalSiteUseByTypes.stream().filter(t->t.getSiteId().equals(site.getId())).collect(Collectors.toList());
-			this.setSupplementalFields(site, totalSiteUseByTypesBySiteId);
-		});
+		this.setSupplementalFields(allSites);
 		return allSites;
+	}
+
+	/**
+	 * Returns a list of sites by state
+	 * @return
+	 */
+	public List<Site> findAllByState(@NonNull String state) {
+		List<Site> sitesByState = siteRepository.findAllByStateEquals(state);
+		this.setSupplementalFields(sitesByState);
+		return sitesByState;
 	}
 
 	/*
 		For a given site, calculate total size by summing the size_sqft associated with the site’s use(s).
 	 */
-	long calculateTotalSize(Site site) {
+	private long calculateTotalSize(Site site) {
 		return site.getSiteUses().stream().map(su -> su.getSizeSqft()).reduce(0L, Long::sum);
-	}
-
-	/*
-		Sets the totalSize and primary use type for a given site
-	 */
-	void setSupplementalFields(Site site, List<TotalSiteUseByType> totalSiteUseByTypesBySiteId) {
-
-		site.setTotalSize(calculateTotalSize(site));
-		site.setPrimaryUseType(calculatePrimaryType(totalSiteUseByTypesBySiteId));
 	}
 
 	/*
@@ -81,9 +76,31 @@ public class SiteService {
 		This implementation uses SQL to calculate return a list of totalSiteUseByType projections
 		then uses streams to select the max.
 	 */
-	UseType calculatePrimaryType(List<TotalSiteUseByType> totalSiteUseByTypesBySite) {
+	private UseType calculatePrimaryType(List<TotalSiteUseByType> totalSiteUseByTypesBySite) {
 		TotalSiteUseByType primaryType = totalSiteUseByTypesBySite.stream().max(Comparator.comparing(TotalSiteUseByType::getTotalSize)).orElseGet(null);
 		return new UseType(primaryType);
+	}
+
+	/*
+		Sets the totalSize and primary use type for a given site
+ 	*/
+	private void setSupplementalFields(Site site, List<TotalSiteUseByType> totalSiteUseByTypesBySiteId) {
+		site.setTotalSize(calculateTotalSize(site));
+		site.setPrimaryUseType(calculatePrimaryType(totalSiteUseByTypesBySiteId));
+	}
+
+	/*
+		Sets supplemental fields for a list of sites
+ 	*/
+	private void setSupplementalFields(List<Site> allSites) {
+		final List<TotalSiteUseByType> totalSiteUseByTypes = siteRepository.findAllTotalSiteUseByType();  // get list of total site uses by siteid
+
+		allSites.stream().forEach(site -> {
+
+			// Get the total uses by site and use to calculate primary use type
+			List<TotalSiteUseByType> totalSiteUseByTypesBySiteId = totalSiteUseByTypes.stream().filter(t->t.getSiteId().equals(site.getId())).collect(Collectors.toList());
+			setSupplementalFields(site, totalSiteUseByTypesBySiteId);
+		});
 	}
 
 	/**
