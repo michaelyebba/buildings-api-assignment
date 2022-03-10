@@ -2,6 +2,7 @@ package com.msr.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.msr.model.projection.TotalSiteUseByType;
 import lombok.*;
 
 import javax.persistence.*;

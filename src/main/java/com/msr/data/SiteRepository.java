@@ -1,7 +1,7 @@
 package com.msr.data;
 
 import com.msr.model.Site;
-import org.springframework.data.domain.Page;
+import com.msr.model.projection.TotalSiteUseByType;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
@@ -12,6 +12,27 @@ import java.util.List;
  */
 public interface SiteRepository extends PagingAndSortingRepository<Site, Integer> {
 
+	String FIND_TOTAL_SITE_USE_BY_TYPE_SQL = "" +
+			"SELECT ut.id AS useTypeId, ut.name AS useTypeName, s.id AS siteId, sum(su.sizeSqft) AS totalSize " +
+			"FROM Site s " +
+			"JOIN SiteUse su ON su.site = s.id " +
+			"JOIN UseType ut ON su.useType = ut.id " +
+			"GROUP BY ut.id, ut.name, s.id";
+
+	String FIND_TOTAL_SITE_USE_BY_TYPE_BY_SITE_ID_SQL = "" +
+			"SELECT ut.id AS useTypeId, ut.name AS useTypeName, s.id AS siteId, sum(su.sizeSqft) AS totalSize " +
+			"FROM Site s " +
+			"JOIN SiteUse su ON su.site = s.id " +
+			"JOIN UseType ut ON su.useType = ut.id " +
+			"WHERE s.id = ?1 " +
+			"GROUP BY ut.id, ut.name, s.id";
+
 	@Query("SELECT s FROM Site s")
 	List<Site> findAll();
+
+	@Query(FIND_TOTAL_SITE_USE_BY_TYPE_BY_SITE_ID_SQL)
+	List<TotalSiteUseByType> findTotalSiteUseByTypeBySiteId(Integer siteId);
+
+	@Query(FIND_TOTAL_SITE_USE_BY_TYPE_SQL)
+	List<TotalSiteUseByType> findAllTotalSiteUseByType();
 }
