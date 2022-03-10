@@ -43,8 +43,11 @@ public class SiteDecoratorService {
 	 * @return
 	 */
 	public UseType calculatePrimaryType(List<TotalSiteUseByType> totalSiteUseByTypesBySite) {
-		TotalSiteUseByType primaryType = totalSiteUseByTypesBySite.stream().max(Comparator.comparing(TotalSiteUseByType::getTotalSize)).orElseGet(null);
-		return new UseType(primaryType);
+		if (totalSiteUseByTypesBySite.size() > 0) {
+			TotalSiteUseByType primaryType = totalSiteUseByTypesBySite.stream().max(Comparator.comparing(TotalSiteUseByType::getTotalSize)).orElseGet(null);
+			return new UseType(primaryType);
+		}
+		return new UseType();
 	}
 
 
