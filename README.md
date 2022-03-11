@@ -5,6 +5,23 @@
 This project is intended to test your Java skills with a focus on building web APIs. Refer to the email sent to you on
 how to complete this assignment. Feel free to use, modify, or delete any/all of the provided skeleton code as desired.
 
+## Note from the developer - testing using Swagger UI
+
+I was unable to override the default request example in Swagger for my ```@Post``` method with a ```@RequestBody``` as a parameter.  To execute the ```@Post```
+method in the Swagger ui, you need to use the following JSON format as the request body:
+
+```json
+{
+  "site": {
+    "name": "New Site",
+    "address": "123 fake st",
+    "city": "Boston",
+    "state": "MA",
+    "zipcode": "02149"
+  }
+}
+```
+
 ## Getting to know your project
 
 ### Docker
