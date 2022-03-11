@@ -1,5 +1,6 @@
 package com.msr.service;
 
+import com.msr.data.SiteRepository;
 import com.msr.data.UseTypeRepository;
 import com.msr.model.Site;
 import com.msr.model.UseType;
@@ -27,6 +28,9 @@ public class SiteServiceTest {
 
 	@Autowired
 	private UseTypeRepository useTypeRepository;
+
+	@Autowired
+	private SiteRepository siteRepository;
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
@@ -106,6 +110,8 @@ public class SiteServiceTest {
  	*/
 	void verifyPrimaryType(Site site) {
 
+		UseType primaryUseType = site.getPrimaryUseType();
+		site = siteRepository.findById(site.getId()).get();
 		Integer maxUseTypeKey = site.getSiteUses().stream()
 				.collect(Collectors.groupingBy(su -> su.getUseType().getId(), Collectors.summingLong(su->su.getSizeSqft())))
 				.entrySet().stream()
@@ -113,8 +119,9 @@ public class SiteServiceTest {
 				.get().getKey()
 				;
 
+		assertThat(maxUseTypeKey).isNotNull();
 		UseType verifiedPrimaryType = useTypeRepository.findById(maxUseTypeKey).orElseGet(null);
-		assertThat(site.getPrimaryUseType()).isEqualTo(verifiedPrimaryType);
+		assertThat(primaryUseType).isEqualTo(verifiedPrimaryType);
 	}
 
 	/*

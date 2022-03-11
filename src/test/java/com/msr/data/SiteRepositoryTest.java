@@ -1,6 +1,7 @@
 package com.msr.data;
 
 import com.msr.model.Site;
+import com.msr.model.projection.DecoratedSite;
 import com.msr.model.projection.TotalSiteUseByType;
 import lombok.extern.apachecommons.CommonsLog;
 import org.junit.jupiter.api.Test;
@@ -55,5 +56,19 @@ public class SiteRepositoryTest {
 		List<Site> allSites = siteRepository.findAll();
 		assertThat(allSites).isNotEmpty();
 		assertThat(allSites).hasSize(6);
+	}
+
+	@Test
+	public void testFindAllDecoratedSites_Success() {
+		List<DecoratedSite> decoratedSites = siteRepository.findAllDecoratedSites();
+		assertThat(decoratedSites).isNotEmpty();
+		assertThat(decoratedSites).hasSize(siteRepository.findAll().size());
+	}
+
+	@Test
+	public void testFindAllBySiteUsesSizeSqftGreaterThan_15000 () {
+		List<Site> sites = siteRepository.findDistinctBySiteUsesSizeSqftGreaterThan(15000L);
+		assertThat(sites).isNotEmpty();
+		assertThat(sites).hasSize(5);
 	}
 }

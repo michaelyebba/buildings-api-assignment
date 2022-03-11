@@ -2,6 +2,7 @@ package com.msr.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.msr.model.projection.DecoratedSite;
 import lombok.*;
 
 import javax.persistence.*;
@@ -44,4 +45,22 @@ public class Site {
     @Transient
     @JsonProperty("primary_type")
     private UseType primaryUseType;
+
+    /**
+     * Constructor to transform a DecoratedSite into a Site object
+     */
+    public Site(DecoratedSite decoratedSite) {
+        this.id = decoratedSite.getId();
+        this.name = decoratedSite.getName();
+        this.address = decoratedSite.getAddress();
+        this.city = decoratedSite.getCity();
+        this.state = decoratedSite.getState();
+        this.zipcode = decoratedSite.getZipCode();
+        this.totalSize = decoratedSite.getTotalSizeSqft();
+
+        UseType primaryUt = new UseType();
+        primaryUt.setId(decoratedSite.getUseTypeId());
+        primaryUt.setName(decoratedSite.getUseTypeName());
+        this.primaryUseType = primaryUt;
+    }
 }

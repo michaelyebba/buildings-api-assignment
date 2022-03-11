@@ -1,6 +1,7 @@
 package com.msr.data;
 
 import com.msr.model.Site;
+import com.msr.model.projection.DecoratedSite;
 import com.msr.model.projection.TotalSiteUseByType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -38,38 +39,49 @@ public interface SiteRepository extends JpaRepository<Site, Integer> {
 
 	List<Site> findAllByStateEquals(String state);
 
-	@Query(nativeQuery = true, value="WITH \n" +
+	List<Site> findDistinctBySiteUsesSizeSqftGreaterThan(Long sqft);
+
+	// TODO would create a MySQL view for this native query and then we could create a findDecoratedSiteById method pretty easily
+	@Query(nativeQuery = true, value="WITH\n" +
 			"  TotalSizeSqftBySiteId AS (\n" +
-			"    SELECT s.Id, sum(su.size_sqft) as totalSizeSqft \n" +
+			"    SELECT s.Id, sum(su.size_sqft) as totalSizeSqft\n" +
 			"    FROM Site s\n" +
 			"    JOIN SiteUse su ON su.site_id = s.id\n" +
 			"    GROUP BY s.Id\n" +
 			"),\n" +
 			"  TotalSizeSqftBySiteIdAndUseType AS (\n" +
-			"    SELECT s.Id, su.use_type_id, sum(su.size_sqft) as totalSizeSqft \n" +
+			"    SELECT s.Id, su.use_type_id, sum(su.size_sqft) as totalSizeSqft\n" +
 			"    FROM Site s\n" +
 			"    JOIN SiteUse su ON su.site_id = s.id\n" +
 			"    GROUP BY s.Id, use_type_id\n" +
 			"),\n" +
 			"  MaxSizeBySiteId AS (\n" +
 			"    SELECT id, MAX(totalSizeSqft ) AS MaxTotalSizeSqFt\n" +
-			"    FROM TotalSizeSqftBySiteIdAndUseType \n" +
+			"    FROM TotalSizeSqftBySiteIdAndUseType\n" +
 			"    GROUP BY id\n" +
 			"),\n" +
 			"  MaxSizeSqftBySiteIdAndUseType AS (\n" +
 			"    SELECT id, use_type_id, MAX(totalSizeSqft ) AS MaxTotalSizeSqFt\n" +
 			"    FROM TotalSizeSqftBySiteIdAndUseType\n" +
 			"    GROUP BY id, use_type_id\n" +
+			"),\n" +
+			"  SiteDecorated AS (\n" +
+			"\n" +
+			"    SELECT\n" +
+			"      s.Id as siteId,\n" +
+			"      s.totalSizeSqft,\n" +
+			"      MAX(ut.use_type_id) AS useTypeId,\n" +
+			"      ms.MaxTotalSizeSqFt\n" +
+			"    FROM TotalSizeSqftBySiteId s\n" +
+			"    JOIN MaxSizeSqftBySiteIdAndUseType ut ON ut.id = s.id\n" +
+			"    JOIN MaxSizeBySiteId ms ON ms.id = ut.id AND ms.MaxTotalSizeSqFt = ut.MaxTotalSizeSqFt\n" +
+			"    GROUP BY  s.Id, s.totalSizeSqft, ms.MaxTotalSizeSqFt\n" +
 			")\n" +
-			"SELECT \n" +
-			"  site.Id, site.Address, site.City, site.Name, site.State, site.ZipCode,\n" +
-			"  s.totalSizeSqft, \n" +
-			"  MAX(ut.use_type_id) AS use_type_id, \n" +
-			"  ms.MaxTotalSizeSqFt \n" +
-			"FROM TotalSizeSqftBySiteId s\n" +
-			"JOIN Site site ON site.Id = s.id\n" +
-			"JOIN MaxSizeSqftBySiteIdAndUseType ut ON ut.id = s.id\n" +
-			"JOIN MaxSizeBySiteId ms ON ms.id = ut.id AND ms.MaxTotalSizeSqFt = ut.MaxTotalSizeSqFt\n" +
-			"GROUP BY  site.Id, site.Address, site.City, site.Name, site.State, site.ZipCode, s.totalSizeSqft,   ms.MaxTotalSizeSqFt")
-	List<Site> findAllUsingCte();
+			"SELECT\n" +
+			"     s.Id, s.Address, s.City, s.Name, s.State, s.ZipCode, sd.totalSizeSqft,\n" +
+			"     sd.useTypeId, ut.name as UseTypeName\n" +
+			"FROM SiteDecorated sd\n" +
+			"JOIN Site s ON s.id = sd.siteId\n" +
+			"JOIN UseType ut on ut.id = sd.useTypeId")
+	List<DecoratedSite> findAllDecoratedSites();
 }

@@ -52,6 +52,7 @@ public class SitesController {
         return siteService.findAll();
     }
 
+    @ApiOperation("Returns a list of all sites with the given state code")
     @GetMapping(value = "/search", params = "state")
     public List<Site> getAllSitesByState(
                                         @ApiParam(name = "state", value = "The 2 digit state code to search for", example = "CA")
@@ -59,6 +60,13 @@ public class SitesController {
 
         // TODO validate state code
         return siteService.findAllByState(state);
+    }
+
+    @ApiOperation("Returns a list of all sites that have site use with square footage greater than the specified velu")
+    @GetMapping(value = "/search", params = "sqft")
+    public List<Site> getAllSitesBySiteUseGreaterThan(@ApiParam(name = "sqft", value = "Check if any site's sqft is greater than this value", example = "15000")
+                                                      @RequestParam Long sqft) {
+        return siteService.findAllBySiteUseGreaterThan(sqft);
     }
 
     /**

@@ -2,6 +2,7 @@ package com.msr.service;
 
 import com.msr.data.SiteRepository;
 import com.msr.model.Site;
+import com.msr.model.projection.DecoratedSite;
 import com.msr.model.projection.TotalSiteUseByType;
 import lombok.NonNull;
 import lombok.extern.apachecommons.CommonsLog;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @CommonsLog
@@ -32,15 +34,11 @@ public class SiteService {
 	 * @return
 	 */
 	public Site findSiteById(@NonNull Integer id) {
-		Optional<Site> siteOpt = siteRepository.findById(id);
-
-		if (siteOpt.isPresent()) {
-			Site site = siteOpt.get();
-			List<TotalSiteUseByType> totalSiteUseByTypesBySite = siteRepository.findTotalSiteUseByTypeBySiteId(site.getId());
-			siteDecoratorService.setSupplementalFields(site, totalSiteUseByTypesBySite);
-			return site;
+		List<DecoratedSite> decoratedSites = siteRepository.findAllDecoratedSites();
+		DecoratedSite decoratedSite = decoratedSites.stream().filter(ds -> ds.getId().equals(id)).findFirst().orElseGet(null);
+		if (decoratedSite != null) {
+			return new Site(decoratedSite);
 		}
-
 		return null;
 	}
 
@@ -50,9 +48,8 @@ public class SiteService {
 	 * @return
 	 */
 	public List<Site> findAll() {
-		List<Site> allSites = siteRepository.findAll();
-		siteDecoratorService.setSupplementalFields(allSites);
-		return allSites;
+		List<DecoratedSite> decoratedSites = siteRepository.findAllDecoratedSites();
+		return decoratedSites.stream().map(ds -> new Site(ds)).collect(Collectors.toList());
 	}
 
 	/**
@@ -63,6 +60,18 @@ public class SiteService {
 		List<Site> sitesByState = siteRepository.findAllByStateEquals(state);
 		siteDecoratorService.setSupplementalFields(sitesByState);
 		return sitesByState;
+	}
+
+	/**
+	 * Returns any site that has a site use sqft size greater than the specified value
+	 *
+	 * @param sqft  The value to check
+	 * @return
+	 */
+	public List<Site> findAllBySiteUseGreaterThan(Long sqft) {
+		List<Site> sites = siteRepository.findDistinctBySiteUsesSizeSqftGreaterThan(sqft);
+		siteDecoratorService.setSupplementalFields(sites);
+		return sites;
 	}
 
 	/**
