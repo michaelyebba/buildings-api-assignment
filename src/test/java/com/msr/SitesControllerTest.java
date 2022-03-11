@@ -35,9 +35,8 @@ class SitesControllerTest {
         mockMvc.perform(get("/sites/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.*", hasSize(6)))
-                .andExpect(jsonPath("$..site").exists())
-                .andExpect(jsonPath("$..site.[?(@.id==1)]").exists())
-                .andExpect(jsonPath("$..site.[?(@.id==1 && @.total_size==13000)]").exists())
+                .andExpect(jsonPath("$..[?(@.id==1)]").exists())
+                .andExpect(jsonPath("$..[?(@.id==1 && @.total_size==13000)]").exists())
         ;
     }
 
@@ -49,9 +48,9 @@ class SitesControllerTest {
     void testGetSiteById() {
         mockMvc.perform(get("/sites/site/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.site").exists())
-                .andExpect(jsonPath("$.site.[?(@.id==1)]").exists())
-                .andExpect(jsonPath("$.site.[?(@.id==1 && @.total_size==13000)]").exists())
+                //.andExpect(jsonPath("$.").exists())
+                .andExpect(jsonPath("$..[?(@.id==1)]").exists())
+                .andExpect(jsonPath("$..[?(@.id==1 && @.total_size==13000)]").exists())
         ;
     }
 
@@ -64,8 +63,8 @@ class SitesControllerTest {
         mockMvc.perform(get("/sites/search?state=CA"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.*", hasSize(5)))
-                .andExpect(jsonPath("$..site").exists())
-                .andExpect(jsonPath("$..site.[?(@.state=='CA')]", hasSize(5)))
+                //.andExpect(jsonPath("$..site").exists())
+                .andExpect(jsonPath("$..[?(@.state=='CA')]", hasSize(5)))
         ;
     }
 

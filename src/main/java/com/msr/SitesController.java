@@ -30,12 +30,14 @@ public class SitesController {
      * @return A Json response of the requested site object
      */
     @ApiOperation("Returns a site resource by its identifier with both supplemental fields (total_size, primary_type) populated.")
-    @GetMapping("/site/{id}")
+    @GetMapping(value = "/site/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Site getSiteById(
                             @ApiParam(
                                     name = "id", example = "1",
                                     value = "The unique site id.  This is the primary key in the database.")
                             @PathVariable Integer id) {
+
+
         return siteService.findSiteById(id);
     }
 
